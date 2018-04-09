@@ -1,0 +1,5 @@
+https://app.ubidots.com
+user: guardian
+pass: 1oTBlazMatejNejcTine
+token: A1E-XpOk57qiHRBJjjHjQaoVVI6Yn4okDg
+API Key: A1E-432bf5eba6abd1385f5e386c89d33b901305
