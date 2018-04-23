@@ -1,20 +1,17 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
+#include <Adafruit_BMP280.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
- 
-#define BME_SCK 13
-#define BME_MISO 12
-#define BME_MOSI 11 
-#define BME_CS 10
 
-#define BME_SDA D3
-#define BME_SDL D4
+#define BMP_SCK 13
+#define BMP_MISO 12
+#define BMP_MOSI 11 
+#define BMP_CS 5
  
-Adafruit_BME280 bme; // I2C
-//Adafruit_BME280 bme(BME_CS); // hardware SPI
+//Adafruit_BMP280 bme; // I2C
+Adafruit_BMP280 bme(BMP_CS); // hardware SPI
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO,  BME_SCK);
  
 #define SEALEVELPRESSURE_HPA (1013.25)
@@ -40,8 +37,7 @@ void setup() {
     bool status;
    
     // default settings
-    status = bme.begin();
-    if (status) {
+    if (!bme.begin(0x77)) {
         Serial.println("Could not find a valid BME280 sensor, check wiring!");
         while (1);
     }
@@ -80,9 +76,9 @@ void printValues() {
     Serial.print("Temperature = ");
     //Serial.print(bme.readTemperature());
     //Serial.println(" *C");
-    float fTemp = bme.readTemperature()*9.0/5.0+32;
+    float fTemp = bme.readTemperature();
     Serial.print(fTemp);
-    Serial.println(" *F");
+    Serial.println(" *C");
 
     //float value2 = analogRead(2)
     //client.add("temperature", fTemp);
@@ -95,7 +91,8 @@ void printValues() {
     return;
   }
 
-   String data = "hello world";
+   String data = String(fTemp, 2);
+   String msg = "Naprava_1:" + data;
 
    Serial.print("Requesting POST: ");
    // Send request to the server:
@@ -104,9 +101,9 @@ void printValues() {
    client.println("Accept: */*");
    client.println("Content-Type: application/x-www-form-urlencoded");
    client.print("Content-Length: ");
-   client.println(data.length());
+   client.println(msg.length());
    client.println();
-   client.print(data);
+   client.print(msg);
 
    delay(500); // Can be changed
   if (client.connected()) { 
