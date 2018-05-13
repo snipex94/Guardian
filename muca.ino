@@ -45,6 +45,10 @@ int interruptPin = D8;
 unsigned long delayTime;
  
 void setup() {
+    Serial.println("Buzzer Setup");
+    pinMode(D3, OUTPUT);
+    Serial.println("DONE");
+    
     Serial.begin(9600);
     Serial.println("BME280 Setup");
     bool status;
@@ -78,8 +82,11 @@ void setup() {
  
 void loop() {
     //printValues();
-    readADX345();
-
+    //readADX345();
+    digitalWrite(D3, HIGH);
+    delay(1);
+    digitalWrite(D3, LOW);
+    delay(1);
     //delay(delayTime);
 }
  
