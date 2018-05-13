@@ -12,6 +12,9 @@
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
     "morgan": "~1.9.0",
+    "mqtt": "*",
+    "plaintextparser": "*",
+    "request": "^2.85.0",
     "sqlite3": "*"
   }
 }
