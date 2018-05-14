@@ -10,7 +10,7 @@ setInterval(function () {
             timestamp: new Date().getTime(),
             device_id: Math.floor(Math.random() * 6 + 1),
             movement: Math.random() * 10,
-            temp: Math.random() * 25 + 20
+            temp: Math.random() * 30 + 20
         },
     };
     request.post(

@@ -15,9 +15,18 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
           crossorigin="anonymous">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
-    <link rel="stylesheet"
+     <link rel="stylesheet"
           href="stylesheets/font-awesome-4.7.0/css/font-awesome.min.css">
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <script src="./javascripts/custom.js" type="text/javascript"></script>
 
     <title>Guardian!</title>
 
@@ -51,47 +60,11 @@
     </div>
 </nav>
 
-<script>
-    $(function () {
-        // Create a client instance
-        client = new Paho.MQTT.Client("test.mosquitto.org", Number(80), "clientId333");
-
-// set callback handlers
-        client.onConnectionLost = onConnectionLost;
-        client.onMessageArrived = onMessageArrived;
-
-// connect the client
-        client.connect({onSuccess:onConnect});
-
-
-// called when the client connects
-        function onConnect() {
-            // Once a connection has been made, make a subscription and send a message.
-            console.log("onConnect");
-            client.subscribe("updates");
-            message = new Paho.MQTT.Message("Hello");
-            message.destinationName = "World";
-            client.send(message);
-        }
-
-// called when the client loses its connection
-        function onConnectionLost(responseObject) {
-            if (responseObject.errorCode !== 0) {
-                console.log("onConnectionLost:"+responseObject.errorMessage);
-            }
-        }
-
-// called when a message arrives
-        function onMessageArrived(message) {
-            console.log("onMessageArrived:"+message.payloadString);
-        }
-    });
-</script>
 <div id="content" style="padding: 5px">
     <div class="card">
 
         <div class="card-header bg-warning">
-           <b>Online devices</b>
+            <b>Online devices</b>
         </div>
         <div class="card-body">
             <table class="table">
@@ -101,46 +74,16 @@
                     <th scope="col">User</th>
                     <th scope="col">Last ping</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Connection status</th>
+                    <th scope="col">Connection</th>
+                    <th scope="col">Temp</th>
+                    <th scope="col">Alarm</th>
                 </tr>
                 </thead>
-                <tbody>
-                <tr>
-                    <th scope="row">1</th>
-                    <td>Marcus Flame</td>
-                    <td>18:00</td>
-                    <td><i class="fa fa-thumbs-up" aria-hidden="true" style="color: green"></i></td>
-                    <td><i class="fa fa-wifi" aria-hidden="true" style="color: green"></i></td>
-                </tr>
-                <tr>
-                    <th scope="row">2</th>
-                    <td>Jacob Ash</td>
-                    <td>18:02</td>
-                    <td><i class="fa fa-thumbs-up" aria-hidden="true" style="color: green"></i></td>
-                    <td><i class="fa fa-wifi" aria-hidden="true" style="color: green"></i></td>
-                </tr>
-                <tr class="table-danger">
-                    <th scope="row">3</th>
-                    <td><a href="#">Johnny Blaze</a></td>
-                    <td>17:55</td>
-                    <td><i class="fa fa-thumbs-down" aria-hidden="true" style="color: red;"></i></td>
-                    <td><i class="fa fa-times" aria-hidden="true" style="color: red;"></i></td>
-                </tr>
-                </tbody>
+                <tbody id="main_table"></tbody>
             </table>
-            </div>
+        </div>
     </div>
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
+
 </div>
 </body>
 
