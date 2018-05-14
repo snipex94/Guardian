@@ -7,15 +7,17 @@ var db = new sqlite3.Database('dev.sqlite');
 
 var cache = {};
 
+const names = {1: "Johnny Blaze", 2: "Gasilec Samo", 3: "Firestorm", 4:"Robbie Reyes", 5: "Danny Ketch", 6: "Abby Brand"};
+
+
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
     res.send('public/index.html');
 });
 
-router.post('/push', plainTextParser, function (req, res, next) {
-    console.log(req.body);
-    insertNewValues(Object.keys(req.body)[0], function (err) {
+router.post('/push', function (req, res, next) {
+    insertNewValues(req.body, function (err) {
         if (!err) {
             res.send({success: true});
         } else {
@@ -25,7 +27,7 @@ router.post('/push', plainTextParser, function (req, res, next) {
 });
 
 router.get('/getDevices', function (req, res, next) {
-    db.all(`SELECT * from data GROUP BY device_id`, function (err, data_res) {
+    db.all(`SELECT device_id from data GROUP BY device_id`, function (err, data_res) {
         if (!err) {
             res.status(200).send({success: true, data: data_res});
         } else {
@@ -35,31 +37,38 @@ router.get('/getDevices', function (req, res, next) {
 });
 
 router.get('/lastUpdate', function (req, res, next) {
-    var lasts = {};
-    for(var key in cache) {
-        var item = {client: key, timestamp: cache[key][cache[key].length-1].time}
-        lasts[key] = item;
-    }
-    res.send({success:true, data: lasts});
+    const query = `select t.device_id, t.temp, t.movement, t.timestamp from data t
+INNER JOIN (select device_id, max(timestamp ) as maxdate from data GROUP BY device_id)
+tm on t.device_id = tm.device_id and t.timestamp = tm.maxdate ORDER BY t.device_id`;
+
+    db.all(query, function (err, data) {
+        if (!err) {
+            for(var i = 0; i < data.length; i++) {
+                data[i]['name'] = names[data[i].device_id];
+            }
+            res.send({success: true, data: data});
+
+        } else {
+            res.send({success: false, msg: err})
+        }
+    })
 });
-
-function insertNewValues(text, _callback) {
-
-    var data = text.split(':');
-    const clientId = data[0];
-    const value = parseFloat(data[1]);
-
-    if(!cache[clientId]) {
-        cache[clientId] = [];
-    }
-
-    console.log({time: new Date().valueOf(), value: value});
-    cache[clientId].push({time: new Date().valueOf(), value: value});
-    _callback(null);
-}
 
 //temp, gibanje, prozi alarm na 1/vseh, indikator alarma
 
+function insertNewValues(_data, _callback) {
+
+
+    db.run(`INSERT INTO data(timestamp,temp,movement,device_id) VALUES(?,?,?,?)`,
+        [_data.timestamp, _data.temp, _data.movement, _data.device_id], function (err) {
+            if (!err) {
+                console.log("Successfully inserted");
+                return _callback(null);
+            } else {
+                console.error(err);
+            }
+        })
+}
 
 
 module.exports = router;
