@@ -5,7 +5,7 @@ let plainTextParser = require('plainTextParser');
 
 var db = new sqlite3.Database('dev.sqlite');
 
-var cache = {};
+var alarmCache = {};
 
 const names = {1: "Johnny Blaze", 2: "Gasilec Samo", 3: "Firestorm", 4:"Robbie Reyes", 5: "Danny Ketch", 6: "Abby Brand"};
 
@@ -54,11 +54,17 @@ tm on t.device_id = tm.device_id and t.timestamp = tm.maxdate ORDER BY t.device_
     })
 });
 
+router.get('/alarm', function (req, res, next) {
+    if(!alarmCache.hasOwnProperty(req.body.device_id)) {
+        alarmCache[req.body.device_id] = {};
+    }
+
+    alarmCache[req.body.device_id]['start'] = new Date();
+})
+
 //temp, gibanje, prozi alarm na 1/vseh, indikator alarma
 
 function insertNewValues(_data, _callback) {
-
-
     db.run(`INSERT INTO data(timestamp,temp,movement,device_id) VALUES(?,?,?,?)`,
         [_data.timestamp, _data.temp, _data.movement, _data.device_id], function (err) {
             if (!err) {
@@ -67,7 +73,7 @@ function insertNewValues(_data, _callback) {
             } else {
                 console.error(err);
             }
-        })
+        });
 }
 
 
