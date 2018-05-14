@@ -4,7 +4,7 @@ const prefix = "FIRE-";
 
 setInterval(function () {
     var options = {
-        uri: 'http://localhost:3000/push',
+        uri: 'http://localhost:3000/pushSimulator',
         method: 'POST',
         json: {
             timestamp: new Date().getTime(),
