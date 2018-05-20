@@ -1,3 +1,5 @@
+var isrendered = [];
+
 function time(t) {
     var d = new Date(t),
         h = (d.getHours() < 10 ? '0' : '') + d.getHours(),
@@ -23,12 +25,12 @@ function triggerAlarm(id) {
 
 }
 
-function isEmpty( el ){
+function isEmpty(el) {
     return !$.trim(el.html())
 }
 
 function renderData(data) {
-    $('#main_table').empty()
+    $('#main_table').empty();
     var appendTabs = isEmpty($('#graph_tabs')) ? true : false;
 
 
@@ -64,21 +66,80 @@ function renderData(data) {
 
         if (appendTabs) {
             var tabHtml =
-                '                    <a class="nav-link active" style="margin-right: 5px">' + row.name + '</a>'
+                '                    <button id="graph_btn_' + row.device_id + '" type="button" class="btn btn-danger" style="margin-right: 5px" onclick="renderGraph('
+                + row.device_id + ', \'' + row.name + '\')">' + row.name + '</button>'
 
             $('#graph_tabs').append(tabHtml);
         }
     }
 }
 
-function renderGraph(id) {
+function renderFunc(id, data, name) {
+    var colorNames = Object.keys(window.chartColors);
+    var temps = [];
+    var time = [];
+    for (var i = 0; i < data.length; i++) {
+        temps.push(data[i].temp);
+        time.push(data[i].timestamp);
+    }
+
+    var colorName = colorNames[config.data.datasets.length % colorNames.length];
+    var newColor = window.chartColors[colorName];
+    var newDataset = {
+        label: name,
+
+        backgroundColor: newColor,
+        borderColor: newColor,
+        data: temps,
+        fill: false,
+        id: id
+    };
+
+    config.data.datasets.push(newDataset);
+
+    config.data.labels = time;
+    window.myLine.update();
+
+
+}
+
+function removeDataset(id, name) {
+    var idx = config.data.datasets.findIndex(function (el) {
+        return el.id == id;
+    });
+
+    config.data.datasets.splice(idx, 1);
+    window.myLine.update();
+}
+
+function renderGraph(id, name) {
+    if (isrendered.indexOf(id) > -1) {
+        $('#graph_btn_' + id).removeClass('btn-primary').addClass('btn-danger');
+        isrendered.splice(isrendered.indexOf(id), 1);
+        removeDataset(id, name);
+    } else {
+        $('#graph_btn_' + id).removeClass('btn-danger').addClass('btn-primary');
+        $.ajax({
+            type: 'get',
+            url: '/getHist',
+            data: {
+                device_id: id
+
+            },
+            success: function (data) {
+                isrendered.push(id);
+                renderFunc(id, data.data, name)
+            }
+        });
+    }
+
 
 }
 
 $('document').ready(function () {
     setInterval(function () {
-    $.get("/lastUpdate", function (data, status) {
-        renderData(data.data)
-    })
+        $.get("/lastUpdate", function (data, status) {
+            renderData(data.data)
+        })
     }, 1000);
 });
