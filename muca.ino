@@ -23,19 +23,23 @@ Adafruit_BMP280 bme(BMP_CS); // hardware SPI
 #define SEALEVELPRESSURE_HPA (1013.25)
 #include "UbidotsMicroESP8266.h"
 
-#define TOKEN  "A1E-XpOk57qiHRBJjjHjQaoVVI6Yn4okDg"  // Put here your Ubidots TOKEN
-#define WIFISSID "Tenda" // Put here your Wi-Fi SSID
-#define PASSWORD "6541je!geslo" // Put here your Wi-Fi password
+//#define TOKEN  "A1E-XpOk57qiHRBJjjHjQaoVVI6Yn4okDg"  // Put here your Ubidots TOKEN
+//#define WIFISSID "Tenda" // Put here your Wi-Fi SSID
+//#define PASSWORD "6541je!geslo" // Put here your Wi-Fi password
 //#define WIFISSID "LTFE" // Put here your Wi-Fi SSID
 //#define PASSWORD "ltfewifi2010" // Put here your Wi-Fi password
 //#define WIFISSID "MakerLab" // Put here your Wi-Fi SSID
 //#define PASSWORD "makerlab2018" // Put here your Wi-Fi password
+
+#define WIFISSID "GUARDIAN" // Put here your Wi-Fi SSID
+#define PASSWORD "tinesubic" // Put here your Wi-Fi password
+
 //Ubidots client(TOKEN);
 
 HTTPClient http;
 WiFiClient client;
-const int httpPort = 3000;
-const char* host = "192.168.1.197";
+const int httpPort = 16179;
+const char* host = "89.212.111.24";
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -151,7 +155,7 @@ void readADX345(){
 void printValues() {
 
     Serial.print("Requesting temperatures...");
-    float fTemp = bme.readTemperature();
+    float fTemp = bme.readTemperature() - 5;
     Serial.print(fTemp);
     Serial.println(" *C");
     Serial.println("DONE");
@@ -171,7 +175,7 @@ void printValues() {
    Serial.print("Requesting POST: ");
    // Send request to the server:
    client.println("POST /push HTTP/1.1");
-   client.println("Host: 192.168.1.197");
+   client.println("Host: 89.212.111.24");
    client.println("Accept: */*");
    client.println("Content-Type: application/x-www-form-urlencoded");
    client.print("Content-Length: ");
@@ -242,10 +246,10 @@ void SetupADX345(){
                                       // SPI pins on the ATMega328: 11, 12 and 13 as reference in SPI Library 
    
   adxl.setActivityXYZ(1, 1, 1);       // Set to activate movement detection in the axes "adxl.setActivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
-  adxl.setActivityThreshold(35);      // 62.5mg per increment   // Set activity   // Inactivity thresholds (0-255)
+  adxl.setActivityThreshold(25);      // 62.5mg per increment   // Set activity   // Inactivity thresholds (0-255)
  
-  adxl.setInactivityXYZ(1, 0, 0);     // Set to detect inactivity in all the axes "adxl.setInactivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
-  adxl.setInactivityThreshold(75);    // 62.5mg per increment   // Set inactivity // Inactivity thresholds (0-255)
+  adxl.setInactivityXYZ(1, 1, 1);     // Set to detect inactivity in all the axes "adxl.setInactivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
+  adxl.setInactivityThreshold(50);    // 62.5mg per increment   // Set inactivity // Inactivity thresholds (0-255)
   adxl.setTimeInactivity(10);         // How many seconds of no activity is inactive?
 
   adxl.setTapDetectionOnXYZ(0, 0, 1); // Detect taps in the directions turned ON "adxl.setTapDetectionOnX(X, Y, Z);" (1 == ON, 0 == OFF)
