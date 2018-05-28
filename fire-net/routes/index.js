@@ -8,12 +8,11 @@ var db = new sqlite3.Database('dev.sqlite');
 var alarmCache = {};
 
 const names = {
-    1: "Johnny Blaze",
+    1: "Johnny Bravo",
     2: "Gasilec Samo",
     3: "Firestorm",
     4: "Robbie Reyes",
-    5: "Danny Ketch",
-    6: "Abby Brand",
+    5: "Wade Wilson",
     50: "Muca Copatarica"
 };
 
@@ -35,7 +34,7 @@ router.post('/pushSimulator', function (req, res, next) {
 
 
 router.post('/push', function (req, res, next) {
-    console.log(Object.keys(req.body)[0]);
+    // console.log(Object.keys(req.body)[0]);
     var splitData = Object.keys(req.body)[0].split(':');
     var data = {
         device_id: parseInt(splitData[0]),
@@ -44,7 +43,7 @@ router.post('/push', function (req, res, next) {
         timestamp: new Date().getTime()
     };
 
-    console.log(data);
+    // console.log(data);
 
     insertNewValues(data, function (err) {
         if (!err) {
@@ -68,7 +67,9 @@ router.get('/getDevices', function (req, res, next) {
 
 router.get('/getHist', function (req, res, next) {
 
-    db.all(`SELECT timestamp, temp from data WHERE device_id=? order by timestamp asc`, [parseInt(req.query.device_id)],
+    var tt = new Date().getTime() - 1000*60*10;
+
+    db.all(`SELECT timestamp, temp from data WHERE device_id=? AND timestamp > ? order by timestamp desc limit 30`, [parseInt(req.query.device_id), tt],
         function (err, data_res) {
             if (!err) {
                 res.status(200).send({success: true, data: data_res});

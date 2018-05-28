@@ -46,13 +46,22 @@ function renderData(data) {
             ok_colour = 'red'
         }
 
+        var act = {
+            0: "Moving",
+            1: "No movement",
+            2: "Free fall",
+            3: "PANIC"
+        }
+
         var conn_colour = 'green';
         var is_connected = 'fa fa-wifi';
         if (row.timestamp < (new Date().getTime() - 5000)) {
             is_connected = 'fa fa-times';
             conn_colour = 'red';
         }
-
+if(row.device_id == 50) {
+            console.log(row.movement)
+}
         var html = '<tr>' +
             '                    <th scope="row">' + row.device_id + '</th>' +
             '                    <td><a>' + row.name + '</a></td>' +
@@ -61,6 +70,8 @@ function renderData(data) {
             '                    <td><i class="' + is_connected + '" aria-hidden="true" style="color: ' + conn_colour + '"></i></td>' +
             '                    <td>' + Math.round(row.temp * 10) / 10 + ' °C</td>' +
             '                    <td><button type="button" class="btn btn-danger" id="alarmBtn_' + row.device_id + '" onclick="triggerAlarm(' + row.device_id + ')">Trigger</button></td>' +
+            '                    <td><a>' + act[row.movement] + '</a></td>' +
+
             '                </tr>';
         $('#main_table').append(html);
 
@@ -70,8 +81,28 @@ function renderData(data) {
                 + row.device_id + ', \'' + row.name + '\')">' + row.name + '</button>'
 
             $('#graph_tabs').append(tabHtml);
+
+
+            if (row.device_id == 1) {
+                renderGraph(row.device_id, row.name);
+            }
         }
+
+        var idx = config.data.datasets.findIndex(function (el) {
+            return el.id == row.device_id;
+        });
+
+        if (idx > -1) {
+            config.data.labels.push(row.timestamp)
+            config.data.labels.shift();
+            config.data.datasets[idx].data.push(row.temp);
+            config.data.datasets[idx].data.shift();
+            window.myLine.update();
+
+        }
+
     }
+
 }
 
 function renderFunc(id, data, name) {
@@ -132,8 +163,6 @@ function renderGraph(id, name) {
             }
         });
     }
-
-
 }
 
 $('document').ready(function () {
@@ -141,5 +170,5 @@ $('document').ready(function () {
         $.get("/lastUpdate", function (data, status) {
             renderData(data.data)
         })
-    }, 1000);
+    }, 250);
 });
