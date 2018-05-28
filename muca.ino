@@ -1,4 +1,4 @@
-#include <OneWire.h>
+ #include <OneWire.h>
 #include <DallasTemperature.h>
 
 #include <SparkFun_ADXL345.h>
@@ -26,6 +26,10 @@ Adafruit_BMP280 bme(BMP_CS); // hardware SPI
 #define TOKEN  "A1E-XpOk57qiHRBJjjHjQaoVVI6Yn4okDg"  // Put here your Ubidots TOKEN
 #define WIFISSID "Tenda" // Put here your Wi-Fi SSID
 #define PASSWORD "6541je!geslo" // Put here your Wi-Fi password
+//#define WIFISSID "LTFE" // Put here your Wi-Fi SSID
+//#define PASSWORD "ltfewifi2010" // Put here your Wi-Fi password
+//#define WIFISSID "MakerLab" // Put here your Wi-Fi SSID
+//#define PASSWORD "makerlab2018" // Put here your Wi-Fi password
 //Ubidots client(TOKEN);
 
 HTTPClient http;
@@ -42,14 +46,24 @@ DallasTemperature sensors(&oneWire);
 ADXL345 adxl = ADXL345(); 
 int interruptPin = D8;
 
-unsigned long delayTime;
+bool beepStatus_FreeFall = false;
+bool beepStatus_Inactivity = false;
+int send_status = 0;
+int Inactivity_counter = 0;
+
+int button_counter = 0;
  
 void setup() {
+    Serial.begin(115200);
+    
     Serial.println("Buzzer Setup");
     pinMode(D3, OUTPUT);
     Serial.println("DONE");
-    
-    Serial.begin(9600);
+
+    Serial.println("Button Setup");
+    pinMode(D4, INPUT_PULLUP);
+    Serial.println("DONE");
+
     Serial.println("BME280 Setup");
     bool status;
     // default settings
@@ -78,16 +92,46 @@ void setup() {
     Serial.println("WiFi connected");
   }
 }
- 
+
+void beep(){
+  int old_time = millis();
+  while((millis() - old_time) <= 1000){
+    digitalWrite(D3, HIGH);
+    delayMicroseconds(250);
+    digitalWrite(D3, LOW);
+    delayMicroseconds(250);
+  }
+}
  
 void loop() {
-    //printValues();
-    //readADX345();
-    digitalWrite(D3, HIGH);
-    delay(1);
-    digitalWrite(D3, LOW);
-    delay(1);
-    //delay(delayTime);
+    printValues();
+    readADX345();
+    if(beepStatus_Inactivity == true){
+      Inactivity_counter++;
+      if(Inactivity_counter == 15){
+        beep();
+        send_status = 1;
+        Inactivity_counter = 0;
+      }else{
+        Inactivity_counter++;
+      }
+    }
+    if(beepStatus_FreeFall == true){
+      beepStatus_FreeFall = false;
+      beep();
+      send_status = 2;
+    }
+    if(digitalRead(D4) == false){
+      button_counter++;
+      if(button_counter == 7){
+        send_status = 3;
+        Serial.println("PANIC");
+        button_counter = 0;
+      }else{
+        button_counter++;
+      }
+    }
+    delay(100);
 }
  
 void readADX345(){
@@ -114,12 +158,15 @@ void printValues() {
 
     Serial.println("Sending data to server");
   if (!client.connect(host, httpPort)) {
-    Serial.println("connection failed");
+    Serial.println("Host connection failed");
     return;
   }
 
+    //naprave od 50 naprej
    String data = String(fTemp, 2);
-   String msg = "Naprava_1:" + data;
+   String send_status_string = String(send_status);
+   String msg = "50:" + data + ':' + send_status_string;
+   Serial.println(msg);
 
    Serial.print("Requesting POST: ");
    // Send request to the server:
@@ -132,13 +179,13 @@ void printValues() {
    client.println();
    client.print(msg);
 
-   delay(500); // Can be changed
+   delay(1000); // Can be changed
   if (client.connected()) { 
     client.stop();  // DISCONNECT FROM THE SERVER
   }
   Serial.println();
   Serial.println("closing connection");
-  delay(5000);
+  //delay(5000);
 }
 
 /********************* ISR *********************/
@@ -152,25 +199,26 @@ void ADXL_ISR() {
   // Free Fall Detection
   if(adxl.triggered(interrupts, ADXL345_FREE_FALL)){
     Serial.println("*** FREE FALL ***");
-    //add code here to do when free fall is sensed
+    beepStatus_FreeFall = true;
   } 
   
   // Inactivity
   if(adxl.triggered(interrupts, ADXL345_INACTIVITY)){
     Serial.println("*** INACTIVITY ***");
-     //add code here to do when inactivity is sensed
+    beepStatus_Inactivity = true;
   }
   
   // Activity
   if(adxl.triggered(interrupts, ADXL345_ACTIVITY)){
     Serial.println("*** ACTIVITY ***"); 
+     beepStatus_Inactivity = false;
+     send_status = 0;
      //add code here to do when activity is sensed
   }
   
   // Double Tap Detection
   if(adxl.triggered(interrupts, ADXL345_DOUBLE_TAP)){
     Serial.println("*** DOUBLE TAP ***");
-     //add code here to do when a 2X tap is sensed
   }
   
   // Tap Detection
@@ -193,8 +241,8 @@ void SetupADX345(){
                                       // Default: Set to 1
                                       // SPI pins on the ATMega328: 11, 12 and 13 as reference in SPI Library 
    
-  adxl.setActivityXYZ(1, 0, 0);       // Set to activate movement detection in the axes "adxl.setActivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
-  adxl.setActivityThreshold(75);      // 62.5mg per increment   // Set activity   // Inactivity thresholds (0-255)
+  adxl.setActivityXYZ(1, 1, 1);       // Set to activate movement detection in the axes "adxl.setActivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
+  adxl.setActivityThreshold(35);      // 62.5mg per increment   // Set activity   // Inactivity thresholds (0-255)
  
   adxl.setInactivityXYZ(1, 0, 0);     // Set to detect inactivity in all the axes "adxl.setInactivityXYZ(X, Y, Z);" (1 == ON, 0 == OFF)
   adxl.setInactivityThreshold(75);    // 62.5mg per increment   // Set inactivity // Inactivity thresholds (0-255)
@@ -209,8 +257,8 @@ void SetupADX345(){
   adxl.setDoubleTapWindow(200);       // 1.25 ms per increment
  
   // Set values for what is considered FREE FALL (0-255)
-  adxl.setFreeFallThreshold(7);       // (5 - 9) recommended - 62.5mg per increment
-  adxl.setFreeFallDuration(30);       // (20 - 70) recommended - 5ms per increment
+  adxl.setFreeFallThreshold(5);       // (5 - 9) recommended - 62.5mg per increment
+  adxl.setFreeFallDuration(20);       // (20 - 70) recommended - 5ms per increment
  
   // Setting all interupts to take place on INT1 pin
   adxl.setImportantInterruptMapping(1, 1, 1, 1, 1);     // Sets "adxl.setEveryInterruptMapping(single tap, double tap, free fall, activity, inactivity);" 
