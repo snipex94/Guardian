@@ -69,7 +69,7 @@ router.get('/getHist', function (req, res, next) {
 
     var tt = new Date().getTime() - 1000*60*10;
 
-    db.all(`SELECT timestamp, temp from data WHERE device_id=? AND timestamp > ? order by timestamp desc limit 30`, [parseInt(req.query.device_id), tt],
+    db.all(`SELECT timestamp, temp from data WHERE device_id=? order by timestamp desc limit 30`, [parseInt(req.query.device_id)],
         function (err, data_res) {
             if (!err) {
                 res.status(200).send({success: true, data: data_res});
@@ -90,6 +90,7 @@ tm on t.device_id = tm.device_id and t.timestamp = tm.maxdate ORDER BY t.device_
             for (let i = 0; i < data.length; i++) {
                 data[i]['name'] = names[data[i].device_id];
             }
+            // console.log(data);
             res.send({success: true, data: data});
 
         } else {

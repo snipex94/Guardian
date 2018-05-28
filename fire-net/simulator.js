@@ -6,7 +6,7 @@ setInterval(function () {
         for (var id = 1; id < 4; id++) {
             // var id = Math.floor(Math.random() * 3 + 1);
             var options = {
-                uri: 'http://localhost:3000/pushSimulator',
+                uri: 'http://localhost:16179/pushSimulator',
                 method: 'POST',
                 json: {
                     timestamp: new Date().getTime(),

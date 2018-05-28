@@ -59,9 +59,9 @@ function renderData(data) {
             is_connected = 'fa fa-times';
             conn_colour = 'red';
         }
-if(row.device_id == 50) {
+        if (row.device_id == 50) {
             console.log(row.movement)
-}
+        }
         var html = '<tr>' +
             '                    <th scope="row">' + row.device_id + '</th>' +
             '                    <td><a>' + row.name + '</a></td>' +
@@ -83,7 +83,7 @@ if(row.device_id == 50) {
             $('#graph_tabs').append(tabHtml);
 
 
-            if (row.device_id == 1) {
+            if (row.device_id == 50) {
                 renderGraph(row.device_id, row.name);
             }
         }
@@ -93,10 +93,13 @@ if(row.device_id == 50) {
         });
 
         if (idx > -1) {
+            console.log(row.temp)
             config.data.labels.push(row.timestamp)
-            config.data.labels.shift();
             config.data.datasets[idx].data.push(row.temp);
-            config.data.datasets[idx].data.shift();
+            if (config.data.datasets[idx].data.length > 30) {
+                config.data.labels.shift();
+                config.data.datasets[idx].data.shift();
+            }
             window.myLine.update();
 
         }
@@ -157,8 +160,11 @@ function renderGraph(id, name) {
                 device_id: id
 
             },
+
+
             success: function (data) {
                 isrendered.push(id);
+                console.log(data.data)
                 renderFunc(id, data.data, name)
             }
         });
